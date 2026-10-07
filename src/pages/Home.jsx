@@ -1,55 +1,53 @@
-
 import { useState } from "react";
 import MovieCard from "../components/MovieCard";
 import Pagination from "../components/Pagination";
 import Loader from "../components/Loader";
 
-const API_KEY = "http://www.omdbapi.com/?i=tt3896198&apikey=5f718273";
+const API_KEY = "5f718273";
 
 function Home({ favorites, onFavorite }) {
   const [search, setSearch] = useState("");
   const [movies, setMovies] = useState([]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
 
-  const searchMovies = async (page = 1) => {
+  const searchMovies = async (pageNumber = 1) => {
     if (!search.trim()) {
       setError("Please enter a movie name.");
       return;
     }
 
-    try {
-      setLoading(true);
-      setError("");
-      setSearched(true);
+    setLoading(true);
+    setError("");
 
+    try {
       const response = await fetch(
         `https://www.omdbapi.com/?apikey=${API_KEY}&s=${encodeURIComponent(
           search
-        )}&page=${page}&type=movie`
+        )}&page=${pageNumber}&type=movie`
       );
+
+      if (!response.ok) {
+        throw new Error("Failed to connect to OMDb API.");
+      }
 
       const data = await response.json();
 
       if (data.Response === "False") {
-        throw new Error(
-          data.Error || "No movies found."
-        );
+        setMovies([]);
+        setTotalResults(0);
+        setError(data.Error || "No movies found.");
+      } else {
+        setMovies(data.Search || []);
+        setTotalResults(Number(data.totalResults) || 0);
+        setPage(pageNumber);
       }
-
-      setMovies(data.Search || []);
-      setTotalResults(Number(data.totalResults) || 0);
-      setCurrentPage(page);
-
     } catch (err) {
       setMovies([]);
       setTotalResults(0);
-      setError(err.message);
+      setError("Unable to load movies. Please check your internet connection.");
     } finally {
       setLoading(false);
     }
@@ -57,112 +55,68 @@ function Home({ favorites, onFavorite }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    setCurrentPage(1);
+    setPage(1);
     searchMovies(1);
   };
 
-  const handlePageChange = (page) => {
-    searchMovies(page);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-  };
-
-  const isMovieFavorite = (movie) => {
-    return favorites.some(
-      (favorite) => favorite.imdbID === movie.imdbID
-    );
-  };
-
-  const totalPages = Math.min(
-    Math.ceil(totalResults / 10),
-    100
-  );
+  const totalPages = Math.ceil(totalResults / 10);
 
   return (
     <div className="home-page">
-
       <section className="search-section">
+        <h1>🎬 Movie Search</h1>
+        <p>Search for your favorite movies</p>
 
-        <h1>Find Your Next Movie</h1>
-
-        <p>
-          Search thousands of movies using the OMDb database.
-        </p>
-
-        <form
-          className="search-form"
-          onSubmit={handleSubmit}
-        >
+        <form onSubmit={handleSubmit} className="search-form">
           <input
             type="text"
-            placeholder="Search for a movie..."
+            placeholder="Search movies..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
           <button type="submit">
-            🔍 Search
+            Search
           </button>
         </form>
-
       </section>
 
       {loading && <Loader />}
 
       {!loading && error && (
-        <div className="message error">
-          <h2>Something went wrong</h2>
-          <p>{error}</p>
+        <div className="message error-message">
+          {error}
         </div>
       )}
 
-      {!loading &&
-        !error &&
-        searched &&
-        movies.length === 0 && (
-          <div className="message">
-            <h2>No movies found</h2>
-            <p>
-              Try searching with a different movie title.
-            </p>
-          </div>
-        )}
+      {!loading && !error && movies.length === 0 && (
+        <div className="message">
+          Search for a movie to get started.
+        </div>
+      )}
 
       {!loading && movies.length > 0 && (
         <>
-          <section className="results-header">
-            <h2>
-              Search Results
-            </h2>
-
-            <p>
-              {totalResults} movies found
-            </p>
-          </section>
-
           <div className="movie-grid">
             {movies.map((movie) => (
               <MovieCard
                 key={movie.imdbID}
                 movie={movie}
-                isFavorite={isMovieFavorite(movie)}
+                favorites={favorites}
                 onFavorite={onFavorite}
               />
             ))}
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+          {totalPages > 1 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(newPage) => searchMovies(newPage)}
+            />
+          )}
         </>
       )}
-
     </div>
   );
 }

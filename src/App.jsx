@@ -1,13 +1,7 @@
-
 import { useEffect, useState } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
-
 import Home from "./pages/Home";
 import MovieDetails from "./pages/MovieDetails";
 import Favorites from "./pages/Favorites";
@@ -16,12 +10,9 @@ import "./App.css";
 
 function App() {
   const [favorites, setFavorites] = useState(() => {
-    const savedFavorites =
-      localStorage.getItem("movieFavorites");
+    const savedFavorites = localStorage.getItem("movieFavorites");
 
-    return savedFavorites
-      ? JSON.parse(savedFavorites)
-      : [];
+    return savedFavorites ? JSON.parse(savedFavorites) : [];
   });
 
   useEffect(() => {
@@ -31,45 +22,34 @@ function App() {
     );
   }, [favorites]);
 
-  const toggleFavorite = (movie) => {
+  const handleFavorite = (movie) => {
     setFavorites((currentFavorites) => {
-
-      const exists = currentFavorites.some(
-        (favorite) =>
-          favorite.imdbID === movie.imdbID
+      const alreadyFavorite = currentFavorites.some(
+        (favorite) => favorite.imdbID === movie.imdbID
       );
 
-      if (exists) {
+      if (alreadyFavorite) {
         return currentFavorites.filter(
-          (favorite) =>
-            favorite.imdbID !== movie.imdbID
+          (favorite) => favorite.imdbID !== movie.imdbID
         );
       }
 
-      return [
-        ...currentFavorites,
-        movie
-      ];
+      return [...currentFavorites, movie];
     });
   };
 
   return (
     <BrowserRouter>
-
-      <Navbar
-        favoriteCount={favorites.length}
-      />
+      <Navbar favorites={favorites} />
 
       <main>
-
         <Routes>
-
           <Route
             path="/"
             element={
               <Home
                 favorites={favorites}
-                onFavorite={toggleFavorite}
+                onFavorite={handleFavorite}
               />
             }
           />
@@ -79,7 +59,7 @@ function App() {
             element={
               <MovieDetails
                 favorites={favorites}
-                onFavorite={toggleFavorite}
+                onFavorite={handleFavorite}
               />
             }
           />
@@ -89,21 +69,12 @@ function App() {
             element={
               <Favorites
                 favorites={favorites}
-                onFavorite={toggleFavorite}
+                onFavorite={handleFavorite}
               />
             }
           />
-
         </Routes>
-
       </main>
-
-      <footer>
-        <p>
-          MovieFinder • Powered by OMDb API
-        </p>
-      </footer>
-
     </BrowserRouter>
   );
 }
