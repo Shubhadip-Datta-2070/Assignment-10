@@ -1,0 +1,20 @@
+where to add api key
+
+You need to add it in 2 places.
+1. src/pages/Home.jsx
+
+At the very top, you currently have:
+
+const API_KEY = "YOUR_OMDB_API_KEY";
+
+Replace it with your actual key:
+
+const API_KEY = "YOUR_ACTUAL_KEY_HERE";
+
+2. src/pages/MovieDetails.jsx
+
+Do the same there:
+
+const API_KEY = "YOUR_ACTUAL_KEY_HERE";
+
+So both files should contain the same key.
