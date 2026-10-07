@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Loader from "../components/Loader";
 
-const API_KEY = "YOUR_OMDB_API_KEY";
+const API_KEY = "http://www.omdbapi.com/?i=tt3896198&apikey=5f718273";
 
 function MovieDetails({
   favorites,
